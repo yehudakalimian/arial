@@ -1,0 +1,27 @@
+{
+  "name": "אריאל · מעקב תינוק משותף",
+  "short_name": "אריאל",
+  "description": "מעקב הנקה, שינה, חיתולים, מלאי חלב ותרופות — משותף ליהודה ולהדס בזמן אמת.",
+  "id": "./",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "he",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "categories": ["health", "lifestyle", "medical"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "הנקה", "short_name": "הנקה", "url": "./?quick_action=nursing", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "חיתול רטוב", "short_name": "רטוב", "url": "./?quick_action=wet_diaper", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "שינה", "short_name": "שינה", "url": "./?quick_action=sleep", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "בקבוק", "short_name": "בקבוק", "url": "./?quick_action=bottle", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

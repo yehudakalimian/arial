@@ -1,0 +1,17 @@
+{
+  "name": "ariel-baby-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Offline-first Hebrew PWA for shared real-time baby tracking (Supabase).",
+  "scripts": {
+    "start": "python3 -m http.server 5173",
+    "test": "node --test tests/*.test.mjs",
+    "test:db": "node tests/rls.pglite.mjs",
+    "deploy:fn": "supabase functions deploy quick-log --no-verify-jwt",
+    "db:push": "supabase db push"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.2.17"
+  }
+}

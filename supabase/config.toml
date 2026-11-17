@@ -1,0 +1,6 @@
+# Minimal Supabase CLI config for this project (merge into your existing config.toml if you have one).
+project_id = "ariel-baby-tracker"
+
+[functions.quick-log]
+# iOS Shortcuts cannot send a Supabase JWT — the function authenticates by household invite_code (+ optional shortcut_token).
+verify_jwt = false

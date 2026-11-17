@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="he" dir="rtl" data-theme="night" data-hand="right">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <title>אריאל · מעקב תינוק</title>
+  <meta name="description" content="מעקב תינוק משותף בזמן אמת להורים: הנקה, שינה, חיתולים, מלאי חלב ותרופות — במצב לילה OLED.">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark light">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="אריאל">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="modulepreload" href="js/app.js">
+</head>
+<body>
+  <div id="app">
+    <header id="topbar" class="topbar"></header>
+    <main id="view" class="view" data-tab="track"></main>
+    <nav id="nav" class="nav" aria-label="ניווט ראשי"></nav>
+  </div>
+  <div id="sheet-root"></div>
+  <div id="toast-root" class="toast-root"></div>
+  <div id="splash" class="splash"><span>אריאל</span></div>
+  <noscript><p style="color:#F59E0B;padding:24px">יש להפעיל JavaScript.</p></noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
