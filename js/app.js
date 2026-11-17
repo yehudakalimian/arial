@@ -13,6 +13,7 @@ import { renderJournal } from './views/journal.js';
 import { renderReport, reportText } from './views/report.js';
 import { renderSheet } from './views/sheets.js';
 import { I } from './views/icons.js';
+import { SUPABASE_URL } from './config.js';
 
 const $ = (s) => document.querySelector(s);
 const VIEWS = { track: renderTrack, stash: renderStash, journal: renderJournal, report: renderReport };
@@ -197,6 +198,11 @@ const H = {
   }),
   'cloud-reset': () => guard(async () => { await saveSettings({ supabaseUrl: '', supabaseKey: '' }); location.reload(); }),
   'auth-send': () => guard(async () => { const email = $('#auth-email').value.trim(); state.ui.authEmail = email; await transport().signIn(email); showToast('נשלח קוד/קישור למייל', null, { ms: 4000 }); }),
+  'auth-link': () => guard(async () => {
+    const raw = $('#auth-link').value.trim(), base = (state.settings.supabaseUrl || SUPABASE_URL).replace(/\/$/, '');
+    if (!raw.startsWith(base + '/auth/v1/verify')) throw new Error('זה לא קישור הכניסה מהמייל — העתיקו את הקישור המלא');
+    location.href = raw;
+  }),
   'auth-verify': () => guard(async () => { await transport().verify($('#auth-email').value.trim(), $('#auth-code').value.trim()); showToast('מחובר/ת ✓', null, { ms: 3000 }); }),
   'hh-create': () => guard(async () => { const n = $('#hh-name').value; await saveSettings({ meName: n }); await transport().createHousehold(n); showToast('משק הבית נוצר והנתונים הועלו', null, { ms: 4000 }); }),
   'hh-join': () => guard(async () => { const n = $('#hh-name').value; await saveSettings({ meName: n }); await transport().joinHousehold($('#hh-code').value, n); showToast('הצטרפת למשק הבית ✓', null, { ms: 4000 }); }),

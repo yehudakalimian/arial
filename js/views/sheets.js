@@ -187,11 +187,14 @@ function settingsSheet(s) {
       <label class="field">Anon key<input dir="ltr" id="cfg-key" placeholder="eyJhbGciOi..." value="${esc(s.settings.supabaseKey)}"></label>
       <button class="btn full" data-act="save-cloud">שמירה והתחברות</button>`;
   } else if (sy.status === 'signed_out' || !sy.user) {
-    account = `<p class="hint">התחברות עם קוד חד-פעמי במייל (ללא סיסמה):</p>
+    account = `<p class="hint">התחברות במייל, בלי סיסמה:</p>
       <label class="field">אימייל<input dir="ltr" type="email" id="auth-email" autocomplete="email" value="${esc(s.ui.authEmail || '')}"></label>
-      <button class="btn full" data-act="auth-send">שליחת קוד</button>
-      <label class="field">קוד מהמייל<input dir="ltr" inputmode="numeric" id="auth-code" autocomplete="one-time-code"></label>
-      <button class="btn btn-primary full" data-act="auth-verify">כניסה</button>
+      <button class="btn full" data-act="auth-send">שליחת קישור כניסה למייל</button>
+      <p class="hint">במייל יגיע קישור כניסה. בטלפון: לחיצה ארוכה על הקישור ← <b>העתקה</b>, ואז הדביקו כאן (כך נכנסים בתוך האפליקציה שהותקנה):</p>
+      <label class="field">הקישור מהמייל<input dir="ltr" id="auth-link" placeholder="https://…supabase.co/auth/v1/verify?…"></label>
+      <button class="btn btn-primary full" data-act="auth-link">כניסה עם הקישור</button>
+      <label class="field">או קוד בן 6 ספרות (אם הופיע במייל)<input dir="ltr" inputmode="numeric" id="auth-code" autocomplete="one-time-code"></label>
+      <button class="btn full" data-act="auth-verify">כניסה עם קוד</button>
       <button class="btn btn-ghost full" data-act="cloud-reset">ניתוק מהענן (חזרה למצב הדגמה)</button>`;
   } else if (sy.status === 'no_household') {
     account = `<p class="hint">מחובר/ת כ-${esc(sy.user.email)}. בחרו:</p>
