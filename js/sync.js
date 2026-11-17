@@ -258,6 +258,11 @@ class CloudTransport {
     if (error) throw error;
     const hid = data.household.id;
     const rehome = (r) => ({ ...r, household_id: hid });
+    // Demo history must never become real medical records: drop seeded events/bags (real growth measurements stay).
+    for (const e of state.events.filter((x) => x.seed)) await idb.del('local_care_events', e.client_mutation_id);
+    for (const b of state.stash.filter((x) => x.seed)) await idb.del('milk_stash', b.id);
+    state.events = state.events.filter((x) => !x.seed); state.stash = state.stash.filter((x) => !x.seed);
+    for (const q of await idb.getAll('sync_outbox_queue')) if (q.row?.seed) await idb.del('sync_outbox_queue', q.client_mutation_id);
     await saveKv('household', data.household);
     await saveKv('baby', { ...b, household_id: hid });
     await idb.putMany('local_care_events', state.events.map(rehome));

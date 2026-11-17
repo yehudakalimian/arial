@@ -196,7 +196,7 @@ function settingsSheet(s) {
   } else if (sy.status === 'no_household') {
     account = `<p class="hint">מחובר/ת כ-${esc(sy.user.email)}. בחרו:</p>
       <label class="field">השם שלי<select id="hh-name">${['יהודה', 'הדס'].map((n) => `<option ${s.settings.meName === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
-      <button class="btn btn-primary full" data-act="hh-create">יצירת משק בית חדש (העלאת הנתונים מהמכשיר)</button>
+      <button class="btn btn-primary full" data-act="hh-create">יצירת משק בית חדש (נתוני ההדגמה יימחקו, המדידות יישמרו)</button>
       <div class="or">או</div>
       <label class="field">קוד הזמנה מבן/בת הזוג<input dir="ltr" id="hh-code" maxlength="6" autocapitalize="characters" placeholder="ABC123"></label>
       <button class="btn full" data-act="hh-join">הצטרפות (מחליף את נתוני ההדגמה במכשיר)</button>`;

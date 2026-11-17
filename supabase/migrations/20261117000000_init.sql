@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Ariel baby tracker — schema, RLS, RPCs, realtime
 -- =====================================================================
-create extension if not exists pgcrypto;
+create extension if not exists pgcrypto with schema extensions;
 
 -- ---------------------------------------------------------------- tables
 create table public.households (
@@ -119,7 +119,7 @@ create index growth_baby_idx on public.growth_measurements(baby_id, measured_at)
 
 -- ---------------------------------------------------------------- helpers
 create or replace function public.gen_invite_code() returns text
-language plpgsql volatile set search_path = public as $$
+language plpgsql volatile set search_path = public, extensions as $$
 declare
   alphabet constant text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   code text;
@@ -134,16 +134,19 @@ begin
   return code;
 end $$;
 
-create or replace function public.is_member(hid uuid) returns boolean
+create schema if not exists private;
+grant usage on schema private to authenticated;
+
+create or replace function private.is_member(hid uuid) returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (select 1 from household_members where household_id = hid and user_id = auth.uid());
 $$;
-create or replace function public.can_log(hid uuid) returns boolean
+create or replace function private.can_log(hid uuid) returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (select 1 from household_members where household_id = hid and user_id = auth.uid()
                  and role in ('parent_admin', 'caregiver_log_only'));
 $$;
-create or replace function public.is_admin(hid uuid) returns boolean
+create or replace function private.is_admin(hid uuid) returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (select 1 from household_members where household_id = hid and user_id = auth.uid() and role = 'parent_admin');
 $$;
@@ -159,19 +162,19 @@ begin
 end $$;
 
 -- Last-write-wins: ignore updates carrying an older client timestamp (offline devices replaying their outbox).
-create or replace function public.lww_client_updated_at() returns trigger language plpgsql as $$
+create or replace function public.lww_client_updated_at() returns trigger language plpgsql set search_path = public as $$
 begin
   if new.client_updated_at < old.client_updated_at then return null; end if;
   return new;
 end $$;
-create or replace function public.lww_updated_at() returns trigger language plpgsql as $$
+create or replace function public.lww_updated_at() returns trigger language plpgsql set search_path = public as $$
 begin
   if new.updated_at < old.updated_at then return null; end if;
   return new;
 end $$;
 
 -- Thawed milk can never be refrozen.
-create or replace function public.forbid_refreeze() returns trigger language plpgsql as $$
+create or replace function public.forbid_refreeze() returns trigger language plpgsql set search_path = public as $$
 begin
   if new.storage_location = 'freezer' and (old.thawed_at is not null or old.storage_location = 'thawed_fridge') then
     raise exception 'thawed breast milk must not be refrozen';
@@ -201,37 +204,37 @@ alter table public.care_events         enable row level security;
 alter table public.milk_stash          enable row level security;
 alter table public.growth_measurements enable row level security;
 
-create policy households_select on public.households for select to authenticated using (public.is_member(id));
-create policy households_update on public.households for update to authenticated using (public.is_admin(id)) with check (public.is_admin(id));
+create policy households_select on public.households for select to authenticated using (private.is_member(id));
+create policy households_update on public.households for update to authenticated using (private.is_admin(id)) with check (private.is_admin(id));
 
-create policy members_select on public.household_members for select to authenticated using (public.is_member(household_id));
-create policy members_delete on public.household_members for delete to authenticated using (public.is_admin(household_id) or user_id = auth.uid());
+create policy members_select on public.household_members for select to authenticated using (private.is_member(household_id));
+create policy members_delete on public.household_members for delete to authenticated using (private.is_admin(household_id) or user_id = auth.uid());
 
-create policy babies_select on public.babies for select to authenticated using (public.is_member(household_id));
-create policy babies_insert on public.babies for insert to authenticated with check (public.is_admin(household_id));
-create policy babies_update on public.babies for update to authenticated using (public.can_log(household_id)) with check (public.can_log(household_id));
-create policy babies_delete on public.babies for delete to authenticated using (public.is_admin(household_id));
+create policy babies_select on public.babies for select to authenticated using (private.is_member(household_id));
+create policy babies_insert on public.babies for insert to authenticated with check (private.is_admin(household_id));
+create policy babies_update on public.babies for update to authenticated using (private.can_log(household_id)) with check (private.can_log(household_id));
+create policy babies_delete on public.babies for delete to authenticated using (private.is_admin(household_id));
 
-create policy timers_select on public.active_timers for select to authenticated using (public.is_member(household_id));
-create policy timers_insert on public.active_timers for insert to authenticated with check (public.can_log(household_id));
-create policy timers_update on public.active_timers for update to authenticated using (public.can_log(household_id)) with check (public.can_log(household_id));
-create policy timers_delete on public.active_timers for delete to authenticated using (public.can_log(household_id));
+create policy timers_select on public.active_timers for select to authenticated using (private.is_member(household_id));
+create policy timers_insert on public.active_timers for insert to authenticated with check (private.can_log(household_id));
+create policy timers_update on public.active_timers for update to authenticated using (private.can_log(household_id)) with check (private.can_log(household_id));
+create policy timers_delete on public.active_timers for delete to authenticated using (private.can_log(household_id));
 
-create policy events_select on public.care_events for select to authenticated using (public.is_member(household_id));
+create policy events_select on public.care_events for select to authenticated using (private.is_member(household_id));
 create policy events_insert on public.care_events for insert to authenticated
-  with check (public.can_log(household_id) and (logged_by is null or logged_by = auth.uid()));
-create policy events_update on public.care_events for update to authenticated using (public.can_log(household_id)) with check (public.can_log(household_id));
-create policy events_delete on public.care_events for delete to authenticated using (public.is_admin(household_id));
+  with check (private.can_log(household_id) and (logged_by is null or logged_by = auth.uid()));
+create policy events_update on public.care_events for update to authenticated using (private.can_log(household_id)) with check (private.can_log(household_id));
+create policy events_delete on public.care_events for delete to authenticated using (private.is_admin(household_id));
 
-create policy stash_select on public.milk_stash for select to authenticated using (public.is_member(household_id));
-create policy stash_insert on public.milk_stash for insert to authenticated with check (public.can_log(household_id));
-create policy stash_update on public.milk_stash for update to authenticated using (public.can_log(household_id)) with check (public.can_log(household_id));
-create policy stash_delete on public.milk_stash for delete to authenticated using (public.is_admin(household_id));
+create policy stash_select on public.milk_stash for select to authenticated using (private.is_member(household_id));
+create policy stash_insert on public.milk_stash for insert to authenticated with check (private.can_log(household_id));
+create policy stash_update on public.milk_stash for update to authenticated using (private.can_log(household_id)) with check (private.can_log(household_id));
+create policy stash_delete on public.milk_stash for delete to authenticated using (private.is_admin(household_id));
 
-create policy growth_select on public.growth_measurements for select to authenticated using (public.is_member(household_id));
-create policy growth_insert on public.growth_measurements for insert to authenticated with check (public.can_log(household_id));
-create policy growth_update on public.growth_measurements for update to authenticated using (public.can_log(household_id)) with check (public.can_log(household_id));
-create policy growth_delete on public.growth_measurements for delete to authenticated using (public.can_log(household_id));
+create policy growth_select on public.growth_measurements for select to authenticated using (private.is_member(household_id));
+create policy growth_insert on public.growth_measurements for insert to authenticated with check (private.can_log(household_id));
+create policy growth_update on public.growth_measurements for update to authenticated using (private.can_log(household_id)) with check (private.can_log(household_id));
+create policy growth_delete on public.growth_measurements for delete to authenticated using (private.can_log(household_id));
 
 -- ---------------------------------------------------------------- RPCs
 create or replace function public.create_household(
@@ -265,7 +268,7 @@ begin
 end $$;
 
 create or replace function public.set_member_role(p_household_id uuid, p_user_id uuid, p_role text) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, private as $$
 begin
   if not is_admin(p_household_id) then raise exception 'admins only'; end if;
   if p_role not in ('parent_admin', 'caregiver_log_only', 'viewer_pediatrician') then raise exception 'bad role'; end if;
@@ -276,7 +279,7 @@ begin
 end $$;
 
 create or replace function public.rotate_invite_code(p_household_id uuid) returns text
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, private as $$
 declare code text;
 begin
   if not is_admin(p_household_id) then raise exception 'admins only'; end if;
@@ -287,6 +290,8 @@ end $$;
 
 revoke all on function public.create_household, public.join_household, public.set_member_role, public.rotate_invite_code, public.gen_invite_code from public, anon;
 grant execute on function public.create_household, public.join_household, public.set_member_role, public.rotate_invite_code to authenticated;
+revoke execute on function private.is_member, private.can_log, private.is_admin from public, anon;
+grant execute on function private.is_member, private.can_log, private.is_admin to authenticated;
 
 -- ---------------------------------------------------------------- realtime
 alter table public.active_timers replica identity full;   -- DELETE payloads carry baby_id/timer_type

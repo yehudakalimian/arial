@@ -8,10 +8,10 @@ await db.exec(`
   create role anon; create role authenticated;
   create schema auth; create table auth.users(id uuid primary key);
   create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
-  create publication supabase_realtime;
-  create function public.gen_random_bytes(n int) returns bytea language sql volatile as $$ select decode(substr(md5(random()::text) || md5(random()::text), 1, n * 2), 'hex') $$;
+  create publication supabase_realtime; create schema extensions;
+  create function extensions.gen_random_bytes(n int) returns bytea language sql volatile as $$ select decode(substr(md5(random()::text) || md5(random()::text), 1, n * 2), 'hex') $$;
   grant usage on schema public, auth to authenticated;`);
-await db.exec(fs.readFileSync(new URL('../supabase/migrations/20261117000000_init.sql', import.meta.url), 'utf8').replace('create extension if not exists pgcrypto;', ''));
+await db.exec(fs.readFileSync(new URL('../supabase/migrations/20261117000000_init.sql', import.meta.url), 'utf8').replace('create extension if not exists pgcrypto with schema extensions;', ''));
 await db.exec(`grant select, insert, update, delete on all tables in schema public to authenticated;`);
 const A = '11111111-1111-4111-8111-111111111111', B = '22222222-2222-4222-8222-222222222222', C = '33333333-3333-4333-8333-333333333333';
 const BABY = 'aaaaaaaa-0000-4000-8000-000000000001';

@@ -34,6 +34,7 @@ export function buildSeed(now = Date.now()) {
       nursing_left_sec: null, nursing_right_sec: null, ending_side: null, volume_ml: null,
       diaper_type: null, stool_color: null, medication_code: null, dosage_ml: null,
       metadata: {}, is_deleted: false, client_updated_at: f.started_at, created_at: f.started_at, ...f,
+      seed: true, // demo-only marker (never sent to the server; dropped when a real household is created)
     });
   };
   const anyParent = () => (rnd() < 0.5 ? PARENTS.yehuda : PARENTS.hadas);
@@ -110,7 +111,7 @@ export function buildSeed(now = Date.now()) {
     createBag({ baby, pumpedAt: now - 2 * DAY - 3 * HOUR, location: 'fridge', volume: 80, id: uuid() }),
     createBag({ baby, pumpedAt: now - 1 * DAY - 2 * HOUR, location: 'fridge', volume: 100, id: uuid() }),
     createBag({ baby, pumpedAt: now - 80 * MIN, location: 'room_temp', volume: 60, id: uuid() }),
-  ];
+  ].map((b) => ({ ...b, seed: true }));
 
   const growth = [
     { at: birth, w: 3350, l: 50.0, h: 34.5, notes: 'לידה' },
